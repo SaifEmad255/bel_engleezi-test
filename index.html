@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bel-Engleezi | Ultimate Assessment</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold: #fbbf24; --dark: #0f172a; }
+        body { margin: 0; font-family: 'Montserrat', 'Cairo', sans-serif; color: #fff; overflow-x: hidden; user-select: none; }
+        
+        /* خلفية حية متحركة */
+        .animated-bg {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1;
+            background: linear-gradient(-45deg, #0f172a, #1e1b4b, #172554, #020617);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+        @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+        .glass-panel { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+        
+        /* تأثيرات الأزرار */
+        .opt-btn { transition: all 0.2s; border: 2px solid transparent; }
+        .opt-btn:hover:not(:disabled) { transform: translateY(-3px); border-color: var(--gold); box-shadow: 0 10px 15px -3px rgba(251, 191, 36, 0.2); }
+        .opt-correct { background: linear-gradient(135deg, #065f46, #047857) !important; border-color: #34d399 !important; color: white; }
+        .opt-wrong { background: linear-gradient(135deg, #7f1d1d, #991b1b) !important; border-color: #f87171 !important; color: white; }
+
+        /* لعبة الساحر */
+        .stage { position: relative; height: 180px; display: flex; align-items: center; justify-content: center; width: 100%; margin: 20px 0; }
+        .m-card { position: absolute; width: 100px; height: 140px; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; transform-style: preserve-3d; }
+        .m-card .inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
+        .m-card.flipped .inner { transform: rotateY(180deg); }
+        .m-card .face, .m-card .back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 900; text-align: center; border: 2px solid var(--gold); }
+        .m-card .face { background: var(--gold); color: #000; font-size: 1.1rem; word-break: break-word; padding: 5px; }
+        .m-card .back { background: #1e293b; color: var(--gold); font-size: 1.5rem; transform: rotateY(180deg); }
+        
+        select option { background: #0f172a; color: white; }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+    <div class="animated-bg"></div>
+
+    <header class="p-4 flex justify-between items-center bg-slate-900/60 backdrop-blur-md sticky top-0 z-50 border-b border-white/10">
+        <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-full border-2 border-yellow-500 overflow-hidden bg-white">
+                <img src="logo.jpg" alt="Logo" class="w-full h-full object-cover" onerror="this.src='https://ui-avatars.com/api/?name=BE&background=fbbf24&color=000';">
+            </div>
+            <div>
+                <h1 class="text-xl font-black text-white uppercase tracking-tighter">Bel-Engleezi</h1>
+                <p class="text-yellow-500 text-[10px] font-bold tracking-[0.2em] uppercase mt-[-4px]">Academy</p>
+            </div>
+        </div>
+        <div id="timer" class="hidden font-mono text-xl text-yellow-500 border border-yellow-500/30 px-4 py-1 rounded-full bg-slate-950/50">30:00</div>
+    </header>
+
+    <main class="min-h-[85vh] flex items-center justify-center p-4">
+        
+        <div id="start-screen" class="glass-panel p-8 sm:p-10 rounded-3xl max-w-md w-full border-t-4 border-yellow-500">
+            <h2 class="text-3xl font-black text-center mb-2">Student Portal</h2>
+            <p class="text-slate-400 text-center mb-8 font-medium">Please enter your details to begin</p>
+            <div class="space-y-4" dir="rtl">
+                <input type="text" id="u-name" placeholder="الاسم بالكامل" class="w-full bg-slate-800/80 p-4 rounded-xl border border-slate-600 focus:border-yellow-500 text-center text-lg outline-none text-white">
+                <select id="u-age" class="w-full bg-slate-800/80 p-4 rounded-xl border border-slate-600 focus:border-yellow-500 text-center text-lg outline-none text-white appearance-none">
+                    <option value="" disabled selected>المرحلة العمرية</option>
+                    <option value="Under 20">أقل من 20 سنة</option>
+                    <option value="Over 20">أكبر من 20 سنة</option>
+                </select>
+                <select id="u-gender" class="w-full bg-slate-800/80 p-4 rounded-xl border border-slate-600 focus:border-yellow-500 text-center text-lg outline-none text-white appearance-none">
+                    <option value="" disabled selected>النوع</option>
+                    <option value="Male">ذكر</option>
+                    <option value="Female">أنثى</option>
+                </select>
+            </div>
+            <button onmouseenter="snd('hover')" onclick="startTest()" class="w-full mt-8 bg-yellow-500 text-black font-black text-xl py-4 rounded-xl hover:bg-yellow-400 transition-all shadow-[0_0_20px_rgba(251,191,36,0.3)]">بدأ التقييم 🚀</button>
+        </div>
+
+        <div id="quiz-area" class="hidden max-w-4xl w-full">
+            <div class="flex items-center gap-4 mb-6 glass-panel p-3 rounded-2xl">
+                <div class="flex-grow h-3 bg-slate-800 rounded-full overflow-hidden">
+                    <div id="prog-bar" class="h-full bg-yellow-500 w-0 transition-all duration-500"></div>
+                </div>
+                <span id="q-num" class="font-black text-yellow-500 text-lg">01/30</span>
+            </div>
+
+            <div class="glass-panel p-6 sm:p-10 rounded-[2rem] min-h-[500px] flex flex-col justify-center relative">
+                
+                <div id="tool-listen" class="hidden text-center mb-6">
+                    <button id="btn-audio" onmouseenter="snd('hover')" onclick="playAudio()" class="bg-slate-800 hover:bg-slate-700 text-yellow-400 border border-yellow-500/50 px-8 py-3 rounded-full font-bold text-lg transition-all">🔊 Play Audio Passage</button>
+                </div>
+                <div id="tool-read" class="hidden mb-6 bg-slate-900/80 p-6 rounded-xl border-l-4 border-yellow-500 text-slate-300 text-lg leading-relaxed italic"></div>
+                
+                <div id="tool-write" class="hidden mb-6 w-full text-center">
+                    <textarea id="write-input" rows="4" class="w-full bg-slate-900 border border-slate-600 p-4 rounded-xl text-white outline-none focus:border-yellow-500 text-lg mb-4" placeholder="Write your sentence here..."></textarea>
+                    <button onmouseenter="snd('hover')" onclick="submitWriting()" class="bg-yellow-500 text-black px-8 py-3 rounded-xl font-black hover:bg-yellow-400 transition-all">Submit Answer</button>
+                </div>
+
+                <div id="tool-magic" class="hidden text-center mb-6">
+                    <h3 class="text-2xl font-black text-yellow-500 mb-2">🎩 The Magician's Memory</h3>
+                    <p id="magic-hint" class="text-lg text-slate-300">Memorize the cards!</p>
+                    <div id="magic-stage" class="stage"></div>
+                </div>
+
+                <h2 id="question-text" class="text-2xl font-bold mb-6 text-white leading-relaxed"></h2>
+                <div id="options-box" class="grid grid-cols-1 gap-4"></div>
+                
+                <div id="explanation-box" class="hidden mt-6 p-5 rounded-xl border text-lg font-medium leading-relaxed"></div>
+
+                <button id="btn-next" onmouseenter="snd('hover')" onclick="nextQuestion()" class="hidden w-full mt-8 bg-white text-black py-4 rounded-xl font-black text-xl hover:bg-slate-200 transition-all">Next Question ⮕</button>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // ----------------- نظام الأصوات -----------------
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let actx;
+        function snd(type) {
+            try {
+                if(!actx) actx = new AudioContext();
+                const o = actx.createOscillator(), g = actx.createGain();
+                o.connect(g); g.connect(actx.destination);
+                let n = actx.currentTime;
+                if(type==='click'){ o.type='sine'; o.frequency.setValueAtTime(600,n); o.frequency.exponentialRampToValueAtTime(300,n+0.1); g.gain.setValueAtTime(0.2,n); g.gain.exponentialRampToValueAtTime(0.01,n+0.1); o.start(n); o.stop(n+0.1); }
+                else if(type==='hover'){ o.type='sine'; o.frequency.setValueAtTime(800,n); g.gain.setValueAtTime(0.03,n); g.gain.linearRampToValueAtTime(0,n+0.05); o.start(n); o.stop(n+0.05); }
+                else if(type==='correct'){ o.type='triangle'; o.frequency.setValueAtTime(400,n); o.frequency.setValueAtTime(600,n+0.1); g.gain.setValueAtTime(0.2,n); g.gain.linearRampToValueAtTime(0,n+0.4); o.start(n); o.stop(n+0.4); }
+                else if(type==='wrong'){ o.type='sawtooth'; o.frequency.setValueAtTime(150,n); o.frequency.exponentialRampToValueAtTime(50,n+0.3); g.gain.setValueAtTime(0.2,n); g.gain.linearRampToValueAtTime(0,n+0.3); o.start(n); o.stop(n+0.3); }
+            } catch(e){}
+        }
+
+        // ----------------- بنك الأسئلة (30 سؤال حقيقي) -----------------
+        const DB = [
+            // 1. Fun
+            { type: "choice", q: "To sound totally confident, what should you stop doing when speaking English?", a: ["Speaking loudly", "Apologizing for your mistakes", "Using hand gestures", "Smiling"], c: 1, exp: "Confidence starts by not saying 'Sorry for my bad English'. Mistakes are proof you are trying!" },
+            
+            // 2-6. Listening (5 Questions - Unique Texts)
+            { type: "listening", text: "Due to the unexpected storm, all shipments heading to the eastern sector have been delayed by 48 hours. Please update the clients immediately.", q: "How long is the delay for the shipments?", a: ["24 hours", "48 hours", "One week", "No delay"], c: 1, exp: "The audio clearly states the delay is 48 hours due to a storm." },
+            { type: "listening", text: "When you present your ideas to the board, maintain eye contact and keep your posture straight. Never cross your arms, as it shows defensiveness.", q: "According to the speaker, crossing your arms shows:", a: ["Confidence", "Defensiveness", "Professionalism", "Boredom"], c: 1, exp: "Crossing arms is a psychological sign of being defensive." },
+            { type: "listening", text: "Our main objective for this quarter is to reduce operational costs by 15% without compromising the quality of our customer service.", q: "What is the main objective?", a: ["Hire more staff", "Reduce costs by 15%", "Change the company logo", "Increase prices"], c: 1, exp: "The focus is on cost reduction by 15%." },
+            { type: "listening", text: "I need you to compile the financial data from the last three months and send the final report to Sarah before Friday noon.", q: "Who needs to receive the final report?", a: ["The manager", "The client", "Sarah", "Friday"], c: 2, exp: "The report must be sent directly to Sarah." },
+            { type: "listening", text: "A successful negotiator knows that silence is a powerful tool. After making an offer, simply stop talking and let the other person fill the silence.", q: "What is described as a 'powerful tool' in negotiations?", a: ["Shouting", "Silence", "Offering a discount", "Talking fast"], c: 1, exp: "Silence forces the other party to respond and reveal their position." },
+
+            // 7-11. Reading (5 Questions)
+            { type: "reading", passage: "Effective time management doesn't mean doing more tasks; it means focusing strictly on high-priority tasks that yield the most significant results. Delegating minor issues is crucial.", q: "What does effective time management actually mean?", a: ["Working 12 hours a day", "Doing everything yourself", "Focusing on high-priority tasks", "Ignoring emails"], c: 2, exp: "It's about prioritization and impact, not just volume of work." },
+            { type: "reading", passage: "Micromanagement destroys employee morale. When a leader constantly checks every detail, it sends a subconscious message that they do not trust their team's competence.", q: "What message does micromanagement send to a team?", a: ["The leader is hard-working", "The leader does not trust their competence", "The leader wants to help", "The team is perfect"], c: 1, exp: "Micromanaging is fundamentally a display of distrust." },
+            { type: "reading", passage: "Diversification in business means entering new markets or creating new products to avoid relying on a single source of income, which drastically reduces risk during economic downturns.", q: "Why do businesses diversify?", a: ["To look cool", "To spend extra money", "To rely on one product", "To reduce risk and avoid relying on one income source"], c: 3, exp: "Diversification spreads out risk across multiple areas." },
+            { type: "reading", passage: "Constructive feedback should focus on the action, not the person. Instead of saying 'You are careless', a professional says 'This report has several errors that need review'.", q: "Constructive feedback should focus on:", a: ["The person's character", "The action or the work itself", "Their past mistakes", "Their salary"], c: 1, exp: "Focusing on the action keeps the feedback professional and objective." },
+            { type: "reading", passage: "In modern marketing, building a community is more profitable than just running ads. Loyal customers become brand ambassadors who sell the product for you.", q: "Who becomes 'brand ambassadors' in modern marketing?", a: ["Paid actors", "Loyal customers", "The CEO", "Competitors"], c: 1, exp: "Loyal customers naturally promote your brand to others." },
+
+            // 12-21. Grammar & Vocab (10 Questions - B1/C1 Level)
+            { type: "choice", q: "I __________ the report by the time the manager arrived.", a: ["have finished", "will finish", "had finished", "am finishing"], c: 2, exp: "Past Perfect (had finished) is used for an action completed before another action in the past." },
+            { type: "choice", q: "If the company had invested in that software, they __________ bankrupt.", a: ["wouldn't have gone", "won't go", "didn't go", "wouldn't go"], c: 0, exp: "Third conditional: If + Past Perfect, Subject + would have + Past Participle." },
+            { type: "choice", q: "He is totally __________ to criticism; it doesn't bother him.", a: ["interested", "ignorant", "indifferent", "involved"], c: 2, exp: "'Indifferent' means having no particular interest or sympathy; unconcerned." },
+            { type: "choice", q: "Hardly __________ the office when his phone rang.", a: ["he had entered", "did he enter", "had he entered", "he entered"], c: 2, exp: "Inversion is required after 'Hardly' at the beginning of a sentence." },
+            { type: "choice", q: "The new strategy will __________ a massive increase in sales.", a: ["bring up", "bring about", "bring down", "bring in"], c: 1, exp: "'Bring about' means to cause something to happen." },
+            { type: "choice", q: "It is crucial that the document __________ signed immediately.", a: ["is", "be", "was", "will be"], c: 1, exp: "The subjunctive mood uses the base form 'be' after 'It is crucial that...'." },
+            { type: "choice", q: "Despite __________ a lot of experience, he failed the interview.", a: ["he has", "having", "of having", "have"], c: 1, exp: "'Despite' is followed by a noun or an -ing verb (gerund)." },
+            { type: "choice", q: "Which word means 'to combine two companies into one'?", a: ["Liquidate", "Merge", "Outsource", "Resign"], c: 1, exp: "To 'merge' means to combine or blend together." },
+            { type: "choice", q: "I would rather you __________ that email to the client yesterday.", a: ["didn't send", "hadn't sent", "not send", "haven't sent"], c: 1, exp: "'Would rather' referring to the past uses the Past Perfect." },
+            { type: "choice", q: "We need to look __________ the discrepancies in the budget.", a: ["into", "after", "down", "up"], c: 0, exp: "'Look into' means to investigate." },
+
+            // 22-24. Writing (3 Questions)
+            { type: "writing", q: "Writing Task: Write a short, professional sentence to tell your boss you will be 15 minutes late due to traffic." },
+            { type: "writing", q: "Writing Task: Write one sentence explaining why learning English is important for your career." },
+            { type: "writing", q: "Writing Task: Write a professional greeting for a formal email to a new client." },
+
+            // 25-29. Memory Cards (5 Questions)
+            { type: "memory", words: ["Revenue", "Deficit", "Margin", "Asset"], target: "Revenue" },
+            { type: "memory", words: ["Merge", "Acquire", "Liquidate", "Invest"], target: "Liquidate" },
+            { type: "memory", words: ["Fluency", "Grammar", "Accent", "Dialect"], target: "Fluency" },
+            { type: "memory", words: ["Execute", "Delegate", "Launch", "Halt"], target: "Delegate" },
+            { type: "memory", words: ["Resilient", "Fragile", "Robust", "Agile"], target: "Agile" },
+
+            // 30. Fun (End)
+            { type: "choice", q: "You survived! What is the Bel-Engleezi ultimate mindset?", a: ["Perfection is everything.", "Mistakes are stepping stones to mastery. 🦅", "Never speak until you are sure.", "Memorize rules all day."], c: 1, exp: "The Elite mindset: Embrace the mistakes, speak boldly, and dominate the language!" }
+        ];
+
+        let state = { idx: 0, score: 0, locked: false, logs: 0, user: {} };
+
+        // كشف الغش (فتح تاب تانية)
+        window.onblur = () => { state.logs++; };
+
+        function startTest() {
+            let n = document.getElementById('u-name').value;
+            let a = document.getElementById('u-age').value;
+            let g = document.getElementById('u-gender').value;
+            if(!n || !a || !g) return alert("من فضلك أكمل جميع البيانات!");
+            
+            state.user = { name: n, age: a, gender: g };
+            snd('click');
+            
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('quiz-area').classList.remove('hidden');
+            document.getElementById('timer').classList.remove('hidden');
+            
+            let t = 1800;
+            setInterval(() => {
+                t--; document.getElementById('timer').innerText = `${Math.floor(t/60)}:${(t%60).toString().padStart(2,'0')}`;
+            }, 1000);
+
+            loadQ();
+        }
+
+        function loadQ() {
+            state.locked = false;
+            let q = DB[state.idx];
+            document.getElementById('q-num').innerText = `${(state.idx+1).toString().padStart(2,'0')}/30`;
+            document.getElementById('prog-bar').style.width = `${((state.idx+1)/30)*100}%`;
+            
+            // تنظيف الشاشة
+            ['tool-listen','tool-read','tool-write','tool-magic','btn-next','explanation-box'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById('options-box').innerHTML = "";
+            document.getElementById('question-text').innerText = q.q || "";
+
+            if(q.type === 'listening') document.getElementById('tool-listen').classList.remove('hidden');
+            if(q.type === 'reading') { document.getElementById('tool-read').innerText = q.passage; document.getElementById('tool-read').classList.remove('hidden'); }
+            
+            if(q.type === 'writing') {
+                document.getElementById('tool-write').classList.remove('hidden');
+                document.getElementById('write-input').value = "";
+            } else if(q.type === 'memory') {
+                runMagicGame(q);
+            } else {
+                // عرض الاختيارات للأسئلة العادية (Choice, Listening, Reading)
+                q.a.forEach((opt, i) => {
+                    let b = document.createElement('button');
+                    b.className = "opt-btn w-full bg-slate-800/80 p-5 rounded-xl text-left text-lg font-semibold text-white";
+                    b.innerText = opt;
+                    b.onmouseenter = () => snd('hover');
+                    b.onclick = () => checkAns(i, q.c, b, q.exp);
+                    document.getElementById('options-box').appendChild(b);
+                });
+            }
+        }
+
+        function playAudio() {
+            snd('click');
+            window.speechSynthesis.cancel();
+            let utter = new SpeechSynthesisUtterance(DB[state.idx].text);
+            utter.lang = 'en-US'; utter.rate = 0.9;
+            window.speechSynthesis.speak(utter);
+        }
+
+        function submitWriting() {
+            let val = document.getElementById('write-input').value.trim();
+            if(val.split(" ").length < 3) return alert("Please write a full sentence!");
+            snd('correct');
+            state.score++; // درجة الكتابة مضمونة هنا
+            document.getElementById('btn-next').classList.remove('hidden');
+            document.getElementById('tool-write').innerHTML = "<div class='text-emerald-400 font-bold text-xl'>Answer Recorded Successfully!</div>";
+        }
+
+        function checkAns(selectedIdx, correctIdx, btn, explanation) {
+            if(state.locked) return;
+            state.locked = true;
+            let btns = document.querySelectorAll('.opt-btn');
+            
+            if(selectedIdx === correctIdx) {
+                snd('correct'); state.score++;
+                btn.classList.add('opt-correct');
+            } else {
+                snd('wrong');
+                btn.classList.add('opt-wrong');
+                btns[correctIdx].classList.add('opt-correct');
+            }
+            
+            btns.forEach(b => b.disabled = true);
+            
+            // إظهار التفسير
+            let expBox = document.getElementById('explanation-box');
+            expBox.innerHTML = `<strong>💡 Explanation:</strong> <br> ${explanation}`;
+            expBox.className = `mt-6 p-4 rounded-xl border text-lg ${selectedIdx === correctIdx ? 'bg-emerald-900/40 border-emerald-500 text-emerald-200' : 'bg-red-900/40 border-red-500 text-red-200'}`;
+            expBox.classList.remove('hidden');
+
+            document.getElementById('btn-next').classList.remove('hidden');
+        }
+
+        // ----------- لوجيك الكروت (The Magician) -----------
+        function runMagicGame(q) {
+            document.getElementById('tool-magic').classList.remove('hidden');
+            let stage = document.getElementById('magic-stage');
+            stage.innerHTML = "";
+            document.getElementById('question-text').innerText = "";
+            
+            let positions = ['0%', '25%', '50%', '75%'];
+            let cards = [];
+
+            q.words.forEach((w, i) => {
+                let c = document.createElement('div');
+                c.className = "m-card";
+                c.style.left = `calc(${positions[i]} + 10px)`;
+                c.innerHTML = `<div class="inner"><div class="face">${w}</div><div class="back">🦅</div></div>`;
+                c.dataset.word = w;
+                stage.appendChild(c);
+                cards.push(c);
+            });
+
+            document.getElementById('magic-hint').innerText = "Memorize the words! (3s)";
+            
+            setTimeout(() => {
+                cards.forEach(c => c.classList.add('flipped')); // اقلبهم
+                document.getElementById('magic-hint').innerText = "Shuffling...";
+                
+                let shuffles = 0;
+                let shfInt = setInterval(() => {
+                    snd('hover');
+                    positions.sort(() => Math.random() - 0.5);
+                    cards.forEach((c, i) => c.style.left = `calc(${positions[i]} + 10px)`);
+                    shuffles++;
+                    
+                    if(shuffles > 5) {
+                        clearInterval(shfInt);
+                        document.getElementById('question-text').innerHTML = `Where is the word: <span class="text-yellow-500 font-black text-3xl">'${q.target}'</span>?`;
+                        document.getElementById('magic-hint').innerText = "Click the correct card!";
+                        
+                        // تفعيل الضغط
+                        cards.forEach(c => {
+                            c.onclick = () => {
+                                if(state.locked) return;
+                                state.locked = true;
+                                c.classList.remove('flipped');
+                                
+                                if(c.dataset.word === q.target) {
+                                    snd('correct'); state.score++;
+                                    c.querySelector('.face').style.background = "#34d399";
+                                    document.getElementById('magic-hint').innerHTML = "<span class='text-emerald-400 font-bold'>Amazing Memory!</span>";
+                                } else {
+                                    snd('wrong');
+                                    c.querySelector('.face').style.background = "#f87171";
+                                    document.getElementById('magic-hint').innerHTML = "<span class='text-red-400 font-bold'>Wrong Card!</span>";
+                                    // أظهر الكارت الصح
+                                    cards.find(x => x.dataset.word === q.target).classList.remove('flipped');
+                                }
+                                document.getElementById('btn-next').classList.remove('hidden');
+                            };
+                        });
+                    }
+                }, 500);
+            }, 3000);
+        }
+
+        function nextQuestion() {
+            snd('click');
+            window.speechSynthesis.cancel();
+            state.idx++;
+            if(state.idx < DB.length) loadQ();
+            else sendResult();
+        }
+
+        // إرسال النتيجة للواتساب
+        function sendResult() {
+            let msg = `*Bel-Engleezi Assessment*%0A%0A`;
+            msg += `👤 اسم الطالب: ${state.user.name}%0A`;
+            msg += `📅 السن: ${state.user.age}%0A`;
+            msg += `🚻 النوع: ${state.user.gender}%0A`;
+            msg += `🏆 النتيجة: ${state.score} / 30%0A`;
+            msg += `⚠️ محاولات الغش (خروج من الصفحة): ${state.logs}`;
+            
+            window.open(`https://wa.me/201144576661?text=${msg}`, "_blank");
+            
+            document.getElementById('quiz-area').innerHTML = `
+                <div class="text-center p-10">
+                    <h2 class="text-5xl font-black text-yellow-500 mb-6 uppercase">Assessment Complete!</h2>
+                    <p class="text-2xl text-white font-bold mb-4">Your result has been sent securely to Bel-Engleezi Academy.</p>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
